@@ -10,6 +10,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, isLoaded, saveProfile } = useApp();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  // Register service worker for PWA + offline support
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/depo-test/sw.js', { scope: '/depo-test/' })
+        .catch(() => {});
+    }
+  }, []);
+
   useEffect(() => {
     if (isLoaded && !profile) setShowOnboarding(true);
   }, [isLoaded, profile]);

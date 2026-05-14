@@ -1,12 +1,20 @@
 {
   "name": "ASCEND",
   "short_name": "ASCEND",
-  "description": "Élève-toi chaque jour",
+  "description": "Élève-toi chaque jour — Missions, XP, Discipline",
   "start_url": "/depo-test/",
+  "scope": "/depo-test/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "categories": ["health", "fitness", "lifestyle"],
   "icons": [
-    { "src": "/depo-test/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+    { "src": "/depo-test/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/depo-test/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Missions du jour", "url": "/depo-test/missions/", "description": "Voir les missions" },
+    { "name": "Coach NOVA", "url": "/depo-test/coach/", "description": "Parler à NOVA" }
   ]
 }
