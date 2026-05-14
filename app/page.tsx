@@ -1,101 +1,138 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { motion } from 'framer-motion';
+import { useApp } from '@/lib/context';
+import { MISSIONS, HABITS, calculateLevel } from '@/lib/gameData';
+import QuoteCard from '@/components/QuoteCard';
+import XPBar from '@/components/XPBar';
+import StreakCard from '@/components/StreakCard';
+import DisciplineScore from '@/components/DisciplineScore';
+import MissionCard from '@/components/MissionCard';
+import HabitDot from '@/components/HabitDot';
+import StatsGrid from '@/components/StatsGrid';
+import { Zap } from 'lucide-react';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } },
+};
+
+export default function Dashboard() {
+  const { completedMissions, completedHabits, xp, streak, disciplineScore, completeMission, toggleHabit } = useApp();
+  const { level } = calculateLevel(xp);
+
+  const topMissions = MISSIONS.slice(0, 4);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-black px-4 pt-6 pb-28"
+    >
+      {/* Header */}
+      <motion.div variants={itemVariants} className="flex items-center justify-between mb-5">
+        <div>
+          <h1
+            className="text-3xl font-black tracking-[0.15em] text-gradient-blue"
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            ASCEND
+          </h1>
+          <p className="text-white/30 text-xs font-bold tracking-widest mt-0.5">LEVEL UP YOUR LIFE</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        <div className="flex items-center gap-2">
+          <div
+            className="px-3 py-1.5 rounded-xl bg-neon-gold/10 border border-neon-gold/30 flex items-center gap-1.5"
+            style={{ boxShadow: '0 0 15px rgba(245,158,11,0.2)' }}
+          >
+            <Zap size={12} className="text-neon-gold" />
+            <span className="text-neon-gold font-black text-sm">{xp} XP</span>
+          </div>
+          <div
+            className="w-9 h-9 rounded-xl bg-neon-blue/10 border border-neon-blue/30 flex items-center justify-center"
+            style={{ boxShadow: '0 0 15px rgba(0,245,255,0.2)' }}
+          >
+            <span className="text-neon-blue font-black text-sm">{level}</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Quote */}
+      <motion.div variants={itemVariants} className="mb-4">
+        <QuoteCard />
+      </motion.div>
+
+      {/* XP Bar */}
+      <motion.div variants={itemVariants} className="mb-4">
+        <XPBar xp={xp} />
+      </motion.div>
+
+      {/* Streak + Discipline */}
+      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mb-5">
+        <StreakCard streak={streak} />
+        <DisciplineScore score={disciplineScore} />
+      </motion.div>
+
+      {/* Today's Missions */}
+      <motion.div variants={itemVariants} className="mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase">
+            TODAY&apos;S MISSIONS
+          </h2>
+          <a href="/missions" className="text-neon-blue text-xs font-bold tracking-wider">SEE ALL →</a>
+        </div>
+        <div className="space-y-3">
+          {topMissions.map((mission) => (
+            <MissionCard
+              key={mission.id}
+              mission={mission}
+              completed={completedMissions.includes(mission.id)}
+              onComplete={() => completeMission(mission.id, mission.xp)}
+            />
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Habits Quick View */}
+      <motion.div variants={itemVariants} className="mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase">HABITS</h2>
+          <a href="/habits" className="text-neon-violet text-xs font-bold tracking-wider">SEE ALL →</a>
+        </div>
+        <div className="glass rounded-2xl p-4 border border-white/10">
+          <div className="grid grid-cols-4 gap-3">
+            {HABITS.slice(0, 8).map((habit) => (
+              <HabitDot
+                key={habit.id}
+                id={habit.id}
+                label={habit.label}
+                icon={habit.icon}
+                color={habit.color}
+                active={completedHabits.includes(habit.id)}
+                onToggle={() => toggleHabit(habit.id)}
+              />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Stats Grid */}
+      <motion.div variants={itemVariants}>
+        <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase mb-3">STATS</h2>
+        <StatsGrid
+          xp={xp}
+          completedMissions={completedMissions.length}
+          completedHabits={completedHabits.length}
+        />
+      </motion.div>
+    </motion.div>
   );
 }
