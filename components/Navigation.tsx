@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Home, Target, Users, MessageCircle, User } from 'lucide-react';
+import { Home, Target, CheckSquare, Users, MessageCircle, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const tabs = [
   { href: '/',         label: 'Home',     icon: Home,          color: '#00f5ff' },
   { href: '/missions', label: 'Missions', icon: Target,        color: '#f59e0b' },
+  { href: '/todo',     label: 'Todo',     icon: CheckSquare,   color: '#a78bfa' },
   { href: '/social',   label: 'Social',   icon: Users,         color: '#00ff88' },
   { href: '/coach',    label: 'Coach',    icon: MessageCircle, color: '#c084fc' },
   { href: '/profile',  label: 'Profil',   icon: User,          color: '#fb923c' },
@@ -57,20 +58,20 @@ export default function Navigation() {
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div className="flex items-center justify-around max-w-lg mx-auto px-3 py-2 gap-1">
+      <div className="flex items-center justify-around max-w-lg mx-auto px-1 py-1.5 gap-0.5">
         {tabs.map(({ href, label, icon: Icon, color }) => {
           const isActive = active === href;
           return (
             <Link key={href} href={href} className="flex-1" onClick={() => setActive(href)}>
               <motion.div
                 whileTap={{ scale: 0.9 }}
-                className="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-2xl"
+                className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 rounded-xl"
                 style={
                   isActive
                     ? {
                         background: `${color}25`,
                         border: `2px solid ${color}70`,
-                        boxShadow: `0 0 18px ${color}40`,
+                        boxShadow: `0 0 14px ${color}40`,
                       }
                     : {
                         background: 'transparent',
@@ -79,15 +80,15 @@ export default function Navigation() {
                 }
               >
                 <Icon
-                  size={22}
+                  size={18}
                   style={
                     isActive
-                      ? { color, filter: `drop-shadow(0 0 6px ${color})` }
+                      ? { color, filter: `drop-shadow(0 0 5px ${color})` }
                       : { color: 'rgba(255,255,255,0.3)' }
                   }
                 />
                 <span
-                  className="text-[10px] font-black tracking-wide"
+                  className="text-[8px] font-black tracking-wide"
                   style={{ color: isActive ? color : 'rgba(255,255,255,0.25)' }}
                 >
                   {label.toUpperCase()}
