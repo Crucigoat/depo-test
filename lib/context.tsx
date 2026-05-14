@@ -1,12 +1,15 @@
 'use client';
 
 import React, {
-  createContext, useContext, useState, useCallback, useEffect,
+  createContext, useContext, useState, useCallback, useEffect, useMemo,
 } from 'react';
 import { HABITS, calculateLevel, type Mission } from './gameData';
 import { generateDailyMissions } from './missionGenerator';
 import type { UserProfile } from './profileTypes';
 import type { TodoItem } from './todoTypes';
+import { generateShareCode, decodeShareCode, type FriendData } from './friendsUtils';
+
+export type { FriendData };
 
 const STORAGE_KEYS = {
   PROFILE: 'ascend_profile',
@@ -19,6 +22,7 @@ const STORAGE_KEYS = {
   TODOS: 'ascend_todos',
   API_KEY: 'ascend_api_key',
   NOTIF_TIME: 'ascend_notif_time',
+  FRIENDS: 'ascend_friends',
 };
 
 function todayStr(): string {
@@ -48,6 +52,14 @@ interface AppState {
   // Notification time
   notifTime: string | null;
   setNotifTime: (time: string | null) => void;
+  // Friends
+  friends: FriendData[];
+  addFriend: (code: string) => 'ok' | 'invalid' | 'already_added';
+  removeFriend: (code: string) => void;
+  myShareCode: string;
+  // Level up
+  justLeveledUp: boolean;
+  clearLevelUp: () => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -63,6 +75,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [todoItems, setTodoItems] = useState<TodoItem[]>([]);
   const [apiKey, setApiKeyState] = useState<string | null>(null);
   const [notifTime, setNotifTimeState] = useState<string | null>(null);
+  const [friends, setFriends] = useState<FriendData[]>([]);
+  const [prevLevel, setPrevLevel] = useState(0);
+  const [justLeveledUp, setJustLeveledUp] = useState(false);
 
   // ── Bootstrap from localStorage ───────────────────────────────────────────
   useEffect(() => {
@@ -122,6 +137,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // Load notif time
       const storedNotifTime = localStorage.getItem(STORAGE_KEYS.NOTIF_TIME);
 
+      // Load friends
+      const rawFriends = localStorage.getItem(STORAGE_KEYS.FRIENDS);
+      const storedFriends: FriendData[] = rawFriends ? JSON.parse(rawFriends) : [];
+
       setProfile(storedProfile);
       setXp(storedXp);
       setStreak(currentStreak);
@@ -131,6 +150,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setTodoItems(storedTodos);
       setApiKeyState(storedApiKey);
       setNotifTimeState(storedNotifTime);
+      setFriends(storedFriends);
     } finally {
       setIsLoaded(true);
     }
@@ -180,6 +200,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(STORAGE_KEYS.NOTIF_TIME);
     }
   }, [notifTime, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem(STORAGE_KEYS.FRIENDS, JSON.stringify(friends));
+  }, [friends, isLoaded]);
+
+  // Level up detection
+  useEffect(() => {
+    if (!isLoaded || xp === 0) return;
+    const { level: newLevel } = calculateLevel(xp);
+    if (prevLevel > 0 && newLevel > prevLevel) {
+      setJustLeveledUp(true);
+    }
+    setPrevLevel(newLevel);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [xp, isLoaded]);
 
   const disciplineScore = Math.round(
     ((completedMissions.length + completedHabits.length) /
@@ -255,6 +291,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setNotifTimeState(time);
   }, []);
 
+  const myShareCode = useMemo(() => {
+    if (!profile) return '';
+    const { level } = calculateLevel(xp);
+    return generateShareCode(profile.firstName, level, xp, streak, profile.goals, profile.gameMode);
+  }, [profile, xp, streak]);
+
+  const friendsRef = React.useRef<FriendData[]>(friends);
+  useEffect(() => { friendsRef.current = friends; }, [friends]);
+
+  const addFriend = useCallback((code: string): 'ok' | 'invalid' | 'already_added' => {
+    const decoded = decodeShareCode(code);
+    if (!decoded) return 'invalid';
+    if (friendsRef.current.some((f) => f.code === code)) return 'already_added';
+    setFriends((prev) => [...prev, decoded]);
+    return 'ok';
+  }, []);
+
+  const removeFriend = useCallback((code: string) => {
+    setFriends((prev) => prev.filter((f) => f.code !== code));
+  }, []);
+
+  const clearLevelUp = useCallback(() => {
+    setJustLeveledUp(false);
+  }, []);
+
   return (
     <AppContext.Provider value={{
       profile, dailyMissions, completedMissions, completedHabits,
@@ -263,6 +324,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       todoItems, addTodo, toggleTodo, deleteTodo,
       apiKey, setApiKey,
       notifTime, setNotifTime,
+      friends, addFriend, removeFriend, myShareCode,
+      justLeveledUp, clearLevelUp,
     }}>
       {children}
     </AppContext.Provider>

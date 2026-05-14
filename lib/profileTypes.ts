@@ -40,6 +40,9 @@ export type Motivation =
   | 'peace'
   | 'prove';
 
+export type UltimateGoalCategory = 'fitness' | 'career' | 'mental' | 'social' | 'financial' | 'other';
+export type TargetDelay = '3months' | '6months' | '1year' | '2years';
+
 export interface UserProfile {
   firstName: string;
   ageRange: AgeRange;
@@ -50,6 +53,11 @@ export interface UserProfile {
   rhythm: Rhythm;
   gameMode: GameMode;
   motivations: Motivation[];
+  ultimateGoal?: {
+    text: string;
+    category: UltimateGoalCategory;
+    targetDelay: TargetDelay;
+  };
   createdAt: string;
   updatedAt: string;
 }

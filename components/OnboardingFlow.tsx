@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check, ArrowLeft } from 'lucide-react';
 import type {
   UserProfile, AgeRange, Goal, Level, TimeAvailable,
-  Weakness, Rhythm, GameMode, Motivation,
+  Weakness, Rhythm, GameMode, Motivation, UltimateGoalCategory, TargetDelay,
 } from '@/lib/profileTypes';
 
 interface Props {
@@ -150,9 +150,25 @@ function OptionCard({
   );
 }
 
+const ULTIMATE_GOAL_CATEGORIES: { value: UltimateGoalCategory; emoji: string; label: string }[] = [
+  { value: 'fitness',   emoji: '💪', label: 'Physique' },
+  { value: 'career',    emoji: '💼', label: 'Carrière' },
+  { value: 'mental',    emoji: '🧠', label: 'Mental' },
+  { value: 'social',    emoji: '🤝', label: 'Social' },
+  { value: 'financial', emoji: '💰', label: 'Finance' },
+  { value: 'other',     emoji: '✨', label: 'Autre' },
+];
+
+const TARGET_DELAYS: { value: TargetDelay; emoji: string; label: string }[] = [
+  { value: '3months', emoji: '⚡', label: '3 mois' },
+  { value: '6months', emoji: '🔥', label: '6 mois' },
+  { value: '1year',   emoji: '🎯', label: '1 an' },
+  { value: '2years',  emoji: '💎', label: '2 ans et +' },
+];
+
 // ── Main component ────────────────────────────────────────────────────────────
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 11;
 
 export default function OnboardingFlow({ onComplete, initialProfile }: Props) {
   const [step, setStep] = useState(0);
@@ -167,6 +183,9 @@ export default function OnboardingFlow({ onComplete, initialProfile }: Props) {
   const [rhythm, setRhythm]                 = useState<Rhythm>(initialProfile?.rhythm ?? 'morning');
   const [gameMode, setGameMode]             = useState<GameMode>(initialProfile?.gameMode ?? 'normal');
   const [motivations, setMotivations]       = useState<Motivation[]>(initialProfile?.motivations ?? []);
+  const [ultimateGoalText, setUltimateGoalText]       = useState(initialProfile?.ultimateGoal?.text ?? '');
+  const [ultimateGoalCategory, setUltimateGoalCategory] = useState<UltimateGoalCategory>(initialProfile?.ultimateGoal?.category ?? 'fitness');
+  const [ultimateGoalDelay, setUltimateGoalDelay]       = useState<TargetDelay>(initialProfile?.ultimateGoal?.targetDelay ?? '1year');
 
   const go = (next: number) => {
     setDirection(next > step ? 1 : -1);
@@ -184,6 +203,7 @@ export default function OnboardingFlow({ onComplete, initialProfile }: Props) {
     if (step === 2) return goals.length > 0;
     if (step === 5) return weaknesses.length > 0;
     if (step === 8) return motivations.length > 0;
+    if (step === 9) return ultimateGoalText.trim().length >= 5;
     return true;
   };
 
@@ -199,6 +219,9 @@ export default function OnboardingFlow({ onComplete, initialProfile }: Props) {
       rhythm,
       gameMode,
       motivations,
+      ultimateGoal: ultimateGoalText.trim().length >= 5
+        ? { text: ultimateGoalText.trim(), category: ultimateGoalCategory, targetDelay: ultimateGoalDelay }
+        : undefined,
       createdAt: initialProfile?.createdAt ?? now,
       updatedAt: now,
     };
@@ -287,11 +310,22 @@ export default function OnboardingFlow({ onComplete, initialProfile }: Props) {
               />
             )}
             {step === 9 && (
+              <StepUltimateGoal
+                text={ultimateGoalText}
+                setText={setUltimateGoalText}
+                category={ultimateGoalCategory}
+                setCategory={setUltimateGoalCategory}
+                targetDelay={ultimateGoalDelay}
+                setTargetDelay={setUltimateGoalDelay}
+              />
+            )}
+            {step === 10 && (
               <StepRecap
                 firstName={firstName}
                 goals={goals}
                 level={level}
                 gameMode={gameMode}
+                ultimateGoalText={ultimateGoalText}
                 onLaunch={handleFinish}
               />
             )}
@@ -300,7 +334,7 @@ export default function OnboardingFlow({ onComplete, initialProfile }: Props) {
       </div>
 
       {/* Bottom CTA */}
-      {step > 0 && step < 9 && (
+      {step > 0 && step < 10 && (
         <div className="px-5 pb-10 pt-3 flex-shrink-0">
           <motion.button
             whileTap={{ scale: 0.97 }}
@@ -398,7 +432,7 @@ function StepName({
   return (
     <div className="pt-6 flex flex-col gap-8">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 1 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 1 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Qui es-tu ?</h2>
         <p className="text-white/40 text-sm">On va personnaliser ton expérience.</p>
       </div>
@@ -437,7 +471,7 @@ function StepGoals({ goals, toggle }: { goals: Goal[]; toggle: (g: Goal) => void
   return (
     <div className="pt-6 flex flex-col gap-6">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 2 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 2 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Tes objectifs</h2>
         <p className="text-white/40 text-sm">Sélectionne jusqu&apos;à 4 objectifs. Tes missions en dépendent.</p>
       </div>
@@ -467,7 +501,7 @@ function StepLevel({ level, setLevel }: { level: Level; setLevel: (v: Level) => 
   return (
     <div className="pt-6 flex flex-col gap-6">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 3 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 3 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Ton niveau actuel</h2>
         <p className="text-white/40 text-sm">Sois honnête — c&apos;est pour calibrer tes missions.</p>
       </div>
@@ -503,7 +537,7 @@ function StepTime({
   return (
     <div className="pt-6 flex flex-col gap-6">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 4 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 4 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Ton temps par jour</h2>
         <p className="text-white/40 text-sm">On adapte la durée des missions à ta disponibilité.</p>
       </div>
@@ -539,7 +573,7 @@ function StepWeaknesses({
   return (
     <div className="pt-6 flex flex-col gap-6">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 5 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 5 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Tes points faibles</h2>
         <p className="text-white/40 text-sm">On cible exactement là où tu en as le plus besoin. Max 5.</p>
       </div>
@@ -567,7 +601,7 @@ function StepRhythm({ rhythm, setRhythm }: { rhythm: Rhythm; setRhythm: (v: Rhyt
   return (
     <div className="pt-6 flex flex-col gap-6">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 6 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 6 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Ton rythme de vie</h2>
         <p className="text-white/40 text-sm">À quel moment tu es le plus opérationnel ?</p>
       </div>
@@ -598,7 +632,7 @@ function StepGameMode({ gameMode, setGameMode }: { gameMode: GameMode; setGameMo
   return (
     <div className="pt-6 flex flex-col gap-6">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 7 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 7 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Ton mode de jeu</h2>
         <p className="text-white/40 text-sm">Définit l&apos;intensité et le nombre de tes missions quotidiennes.</p>
       </div>
@@ -634,7 +668,7 @@ function StepMotivations({
   return (
     <div className="pt-6 flex flex-col gap-6">
       <div>
-        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 8 / 8</p>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 8 / 9</p>
         <h2 className="text-2xl font-black text-white mb-1">Ce qui te motive</h2>
         <p className="text-white/40 text-sm">Ta raison profonde. Sélectionne ce qui résonne vraiment.</p>
       </div>
@@ -658,13 +692,89 @@ function StepMotivations({
   );
 }
 
+function StepUltimateGoal({
+  text, setText, category, setCategory, targetDelay, setTargetDelay,
+}: {
+  text: string;
+  setText: (v: string) => void;
+  category: UltimateGoalCategory;
+  setCategory: (v: UltimateGoalCategory) => void;
+  targetDelay: TargetDelay;
+  setTargetDelay: (v: TargetDelay) => void;
+}) {
+  const MAX_CHARS = 120;
+  return (
+    <div className="pt-6 flex flex-col gap-6">
+      <div>
+        <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-1">Étape 9 / 9</p>
+        <h2 className="text-2xl font-black text-white mb-1">Ton objectif ultime</h2>
+        <p className="text-white/40 text-sm">Quelle est la chose la plus importante que tu veux accomplir ?</p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-white/50 text-xs font-bold tracking-widest uppercase">Je veux...</label>
+        <div className="relative">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
+            placeholder="Ex: Courir un marathon, lancer mon business, perdre 20kg..."
+            rows={3}
+            className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-base font-medium placeholder:text-white/20 focus:outline-none focus:border-neon-blue/50 transition-colors resize-none"
+            style={{ caretColor: '#00f5ff' }}
+          />
+          <span className="absolute bottom-2 right-3 text-white/20 text-xs">
+            {text.length}/{MAX_CHARS}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <label className="text-white/50 text-xs font-bold tracking-widest uppercase">Catégorie</label>
+        <div className="grid grid-cols-3 gap-2">
+          {ULTIMATE_GOAL_CATEGORIES.map((opt) => (
+            <OptionCard
+              key={opt.value}
+              selected={category === opt.value}
+              onClick={() => setCategory(opt.value)}
+              color="#c084fc"
+            >
+              <span className="text-xl mb-1 block text-center">{opt.emoji}</span>
+              <span className="text-white font-semibold text-xs text-center block">{opt.label}</span>
+            </OptionCard>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <label className="text-white/50 text-xs font-bold tracking-widest uppercase">Délai cible</label>
+        <div className="grid grid-cols-2 gap-2">
+          {TARGET_DELAYS.map((opt) => (
+            <OptionCard
+              key={opt.value}
+              selected={targetDelay === opt.value}
+              onClick={() => setTargetDelay(opt.value)}
+              color="#f59e0b"
+            >
+              <div className="flex items-center gap-2 py-1">
+                <span className="text-xl">{opt.emoji}</span>
+                <span className="text-white font-semibold text-sm">{opt.label}</span>
+              </div>
+            </OptionCard>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StepRecap({
-  firstName, goals, level, gameMode, onLaunch,
+  firstName, goals, level, gameMode, ultimateGoalText, onLaunch,
 }: {
   firstName: string;
   goals: Goal[];
   level: Level;
   gameMode: GameMode;
+  ultimateGoalText: string;
   onLaunch: () => void;
 }) {
   const levelLabels: Record<Level, string> = {
@@ -737,6 +847,14 @@ function StepRecap({
             ))}
           </div>
         </div>
+        {ultimateGoalText.trim().length >= 5 && (
+          <div className="flex justify-between items-center border-t border-white/5 pt-3 mt-1">
+            <span className="text-white/40 text-xs">Objectif</span>
+            <span className="text-white font-bold text-sm max-w-[70%] text-right truncate">
+              ✨ {ultimateGoalText.trim().slice(0, 30)}{ultimateGoalText.trim().length > 30 ? '…' : ''}
+            </span>
+          </div>
+        )}
       </motion.div>
 
       <motion.button

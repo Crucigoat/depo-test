@@ -72,6 +72,31 @@ export default function Dashboard() {
         <p className="text-white/30 text-xs mt-2">— {quote.author}</p>
       </motion.div>
 
+      {/* Ultimate goal */}
+      {profile?.ultimateGoal && (() => {
+        const délaiLabels: Record<string, string> = {
+          '3months': 'Dans 3 mois',
+          '6months': 'Dans 6 mois',
+          '1year': 'Dans 1 an',
+          '2years': 'Dans 2 ans et +',
+        };
+        return (
+          <motion.div variants={item}
+            className="glass rounded-2xl p-4 mb-4 border border-neon-gold/20"
+            style={{ background: 'rgba(245,158,11,0.05)' }}
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex-1 mr-3">
+                <p className="text-[10px] text-neon-gold/60 font-bold tracking-widest uppercase">Objectif ultime</p>
+                <p className="text-white font-bold text-sm mt-1">{profile.ultimateGoal.text}</p>
+              </div>
+              <span className="text-2xl">🎯</span>
+            </div>
+            <p className="text-white/30 text-xs mt-2">⏳ {délaiLabels[profile.ultimateGoal.targetDelay]}</p>
+          </motion.div>
+        );
+      })()}
+
       {/* XP Bar */}
       <motion.div variants={item} className="mb-4">
         <XPBar xp={xp} />

@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useApp } from '@/lib/context';
+import { useApp, useLevel } from '@/lib/context';
 import OnboardingFlow from './OnboardingFlow';
 import Navigation from './Navigation';
+import LevelUpCelebration from './LevelUpCelebration';
 import type { UserProfile } from '@/lib/profileTypes';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { profile, isLoaded, saveProfile } = useApp();
+  const { profile, isLoaded, saveProfile, justLeveledUp, clearLevelUp } = useApp();
+  const { level } = useLevel();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Register service worker for PWA + offline support
@@ -63,6 +65,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {justLeveledUp && (
+        <LevelUpCelebration
+          level={level}
+          profileName={profile?.firstName ?? 'Warrior'}
+          onDismiss={clearLevelUp}
+        />
+      )}
       <main className="max-w-lg mx-auto relative">{children}</main>
       <Navigation />
     </>
