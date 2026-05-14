@@ -41,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body
         className="bg-black text-white antialiased min-h-screen overflow-x-hidden"
-        style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <AppProvider>
           <AppShell>{children}</AppShell>
