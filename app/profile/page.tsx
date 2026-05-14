@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, useLevel } from '@/lib/context';
 import { ACHIEVEMENTS } from '@/lib/gameData';
 import AchievementCard from '@/components/AchievementCard';
 import XPBar from '@/components/XPBar';
 import DisciplineScore from '@/components/DisciplineScore';
 import OnboardingFlow from '@/components/OnboardingFlow';
+import NotificationSetup from '@/components/NotificationSetup';
 import {
-  Shield, Zap, Settings, ChevronRight, Moon, Bell, Lock, Pencil,
+  Shield, Zap, Settings, ChevronRight, Moon, Bell, Lock, Pencil, Key, X,
 } from 'lucide-react';
 import type { UserProfile } from '@/lib/profileTypes';
 
@@ -30,11 +31,13 @@ const GAMEMODE_LABELS: Record<string, string> = {
 };
 
 export default function ProfilePage() {
-  const { profile, xp, streak, disciplineScore, completedMissions, saveProfile } = useApp();
+  const { profile, xp, streak, disciplineScore, completedMissions, saveProfile, apiKey, setApiKey, notifTime, setNotifTime } = useApp();
   const { level, currentXP, requiredXP } = useLevel();
   const [dopamineDetox, setDopamineDetox] = useState(false);
   const [challengeMode, setChallengeMode] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [showApiModal, setShowApiModal] = useState(false);
+  const [localApiKey, setLocalApiKey] = useState('');
 
   const ringPercent = (currentXP / requiredXP) * 100;
   const SIZE = 100;
@@ -285,9 +288,129 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
+      {/* Paramètres avancés */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.40 }} className="mb-5">
+        <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase mb-3">PARAMÈTRES AVANCÉS</h2>
+
+        {/* Notifications */}
+        <div className="mb-3">
+          <NotificationSetup notifTime={notifTime} onSave={setNotifTime} />
+        </div>
+
+        {/* API Key section */}
+        <div
+          className="glass rounded-2xl p-4 border border-white/10"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Key size={16} className="text-white/40" />
+              <div>
+                <p className="text-white/80 text-sm font-medium">Clé API NOVA</p>
+                <p className="text-xs mt-0.5" style={{ color: apiKey ? '#00ff88' : 'rgba(255,255,255,0.3)' }}>
+                  {apiKey ? '✓ Configurée' : 'Non configurée'}
+                </p>
+              </div>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={() => { setLocalApiKey(''); setShowApiModal(true); }}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold"
+              style={{
+                background: 'rgba(192,132,252,0.1)',
+                border: '1px solid rgba(192,132,252,0.25)',
+                color: 'rgba(192,132,252,0.8)',
+              }}
+            >
+              {apiKey ? 'MODIFIER' : 'CONFIGURER'}
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+
       <div className="text-center py-2">
         <p className="text-white/10 text-xs">ASCEND v1.0 — Pour les implacables</p>
       </div>
+
+      {/* API Key Modal */}
+      <AnimatePresence>
+        {showApiModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-6"
+            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowApiModal(false); }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+              className="w-full max-w-sm rounded-2xl p-6"
+              style={{
+                background: 'rgba(10,10,20,0.98)',
+                border: '1px solid rgba(192,132,252,0.25)',
+                boxShadow: '0 0 40px rgba(192,132,252,0.15)',
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Key size={18} className="text-violet-400" />
+                  <h2 className="font-black text-white tracking-wider">CLÉ API ANTHROPIC</h2>
+                </div>
+                <button onClick={() => setShowApiModal(false)} className="text-white/30 hover:text-white/60">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <p className="text-white/40 text-xs mb-4 leading-relaxed">
+                Ta clé est stockée localement sur ton appareil. Elle n&apos;est jamais envoyée à nos serveurs.
+              </p>
+
+              <input
+                type="password"
+                value={localApiKey}
+                onChange={(e) => setLocalApiKey(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setApiKey(localApiKey.trim() || null);
+                    setShowApiModal(false);
+                  }
+                }}
+                placeholder="sk-ant-..."
+                autoFocus
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none focus:border-violet-400/40 transition-colors mb-3"
+              />
+
+              {apiKey && (
+                <button
+                  onClick={() => { setApiKey(null); setShowApiModal(false); }}
+                  className="block w-full text-center text-xs text-red-400/60 hover:text-red-400 mb-3 transition-colors"
+                >
+                  Supprimer la clé
+                </button>
+              )}
+
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  setApiKey(localApiKey.trim() || null);
+                  setShowApiModal(false);
+                }}
+                className="w-full py-3 rounded-xl font-bold text-sm"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(192,132,252,0.4), rgba(59,130,246,0.4))',
+                  border: '1px solid rgba(192,132,252,0.4)',
+                  color: 'white',
+                }}
+              >
+                SAUVEGARDER
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

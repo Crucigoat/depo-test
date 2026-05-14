@@ -2,14 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Target, CheckSquare, User } from 'lucide-react';
+import { Home, Target, ClipboardList, MessageCircle, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const tabs = [
-  { href: '/', label: 'Dashboard', icon: Home },
+  { href: '/', label: 'Home', icon: Home },
   { href: '/missions', label: 'Missions', icon: Target },
-  { href: '/habits', label: 'Habits', icon: CheckSquare },
-  { href: '/profile', label: 'Profile', icon: User },
+  { href: '/todo', label: 'Plan', icon: ClipboardList },
+  { href: '/coach', label: 'Coach', icon: MessageCircle },
+  { href: '/profile', label: 'Profil', icon: User },
 ];
 
 export default function Navigation() {
@@ -34,11 +35,11 @@ export default function Navigation() {
                   />
                 )}
                 <Icon
-                  size={20}
+                  size={18}
                   className={isActive ? 'text-neon-blue drop-shadow-[0_0_8px_rgba(0,245,255,0.8)]' : 'text-white/40'}
                 />
                 <span
-                  className={`text-[10px] font-semibold tracking-wider ${
+                  className={`text-[9px] font-semibold tracking-wider ${
                     isActive ? 'text-neon-blue' : 'text-white/30'
                   }`}
                 >
