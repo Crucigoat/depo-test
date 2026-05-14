@@ -1,0 +1,12 @@
+{
+  "name": "ASCEND",
+  "short_name": "ASCEND",
+  "description": "Élève-toi chaque jour",
+  "start_url": "/depo-test/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "/depo-test/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}
