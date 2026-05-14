@@ -2,16 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Home, Target, CheckSquare, Users, MessageCircle, User } from 'lucide-react';
+import { Home, Target, CheckSquare, Users, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const tabs = [
-  { href: '/',         label: 'Home',     icon: Home,          color: '#00f5ff' },
-  { href: '/missions', label: 'Missions', icon: Target,        color: '#f59e0b' },
-  { href: '/todo',     label: 'Todo',     icon: CheckSquare,   color: '#a78bfa' },
-  { href: '/social',   label: 'Social',   icon: Users,         color: '#00ff88' },
-  { href: '/coach',    label: 'Coach',    icon: MessageCircle, color: '#c084fc' },
-  { href: '/profile',  label: 'Profil',   icon: User,          color: '#fb923c' },
+  { href: '/',         label: 'Home',     icon: Home,        color: '#00f5ff' },
+  { href: '/missions', label: 'Missions', icon: Target,      color: '#f59e0b' },
+  { href: '/todo',     label: 'Todo',     icon: CheckSquare, color: '#a78bfa' },
+  { href: '/social',   label: 'Social',   icon: Users,       color: '#00ff88' },
+  { href: '/profile',  label: 'Profil',   icon: User,        color: '#fb923c' },
 ];
 
 // Extrait le segment de path sans basePath ni trailing slash
@@ -58,14 +57,14 @@ export default function Navigation() {
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div className="flex items-center justify-around max-w-lg mx-auto px-1 py-1.5 gap-0.5">
+      <div className="flex items-center justify-around max-w-lg mx-auto px-2 py-2 gap-1">
         {tabs.map(({ href, label, icon: Icon, color }) => {
           const isActive = active === href;
           return (
             <Link key={href} href={href} className="flex-1" onClick={() => setActive(href)}>
               <motion.div
                 whileTap={{ scale: 0.9 }}
-                className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 rounded-xl"
+                className="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl"
                 style={
                   isActive
                     ? {
@@ -80,7 +79,7 @@ export default function Navigation() {
                 }
               >
                 <Icon
-                  size={18}
+                  size={20}
                   style={
                     isActive
                       ? { color, filter: `drop-shadow(0 0 5px ${color})` }
@@ -88,7 +87,7 @@ export default function Navigation() {
                   }
                 />
                 <span
-                  className="text-[8px] font-black tracking-wide"
+                  className="text-[9px] font-black tracking-wide"
                   style={{ color: isActive ? color : 'rgba(255,255,255,0.25)' }}
                 >
                   {label.toUpperCase()}

@@ -23,6 +23,7 @@ const STORAGE_KEYS = {
   API_KEY: 'ascend_api_key',
   NOTIF_TIME: 'ascend_notif_time',
   FRIENDS: 'ascend_friends',
+  PHOTO: 'ascend_photo',
 };
 
 function todayStr(): string {
@@ -60,6 +61,9 @@ interface AppState {
   // Level up
   justLeveledUp: boolean;
   clearLevelUp: () => void;
+  // Profile photo
+  profilePhoto: string | null;
+  setProfilePhoto: (photo: string | null) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -78,6 +82,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [friends, setFriends] = useState<FriendData[]>([]);
   const [prevLevel, setPrevLevel] = useState(0);
   const [justLeveledUp, setJustLeveledUp] = useState(false);
+  const [profilePhoto, setProfilePhotoState] = useState<string | null>(null);
 
   // ── Bootstrap from localStorage ───────────────────────────────────────────
   useEffect(() => {
@@ -141,6 +146,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const rawFriends = localStorage.getItem(STORAGE_KEYS.FRIENDS);
       const storedFriends: FriendData[] = rawFriends ? JSON.parse(rawFriends) : [];
 
+      // Load photo
+      const storedPhoto = localStorage.getItem(STORAGE_KEYS.PHOTO);
+
       setProfile(storedProfile);
       setXp(storedXp);
       setStreak(currentStreak);
@@ -151,6 +159,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setApiKeyState(storedApiKey);
       setNotifTimeState(storedNotifTime);
       setFriends(storedFriends);
+      if (storedPhoto) setProfilePhotoState(storedPhoto);
     } finally {
       setIsLoaded(true);
     }
@@ -316,6 +325,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setJustLeveledUp(false);
   }, []);
 
+  const setProfilePhoto = useCallback((photo: string | null) => {
+    setProfilePhotoState(photo);
+    if (photo) localStorage.setItem(STORAGE_KEYS.PHOTO, photo);
+    else localStorage.removeItem(STORAGE_KEYS.PHOTO);
+  }, []);
+
   return (
     <AppContext.Provider value={{
       profile, dailyMissions, completedMissions, completedHabits,
@@ -326,6 +341,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       notifTime, setNotifTime,
       friends, addFriend, removeFriend, myShareCode,
       justLeveledUp, clearLevelUp,
+      profilePhoto, setProfilePhoto,
     }}>
       {children}
     </AppContext.Provider>

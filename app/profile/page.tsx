@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp, useLevel } from '@/lib/context';
 import { ACHIEVEMENTS } from '@/lib/gameData';
@@ -10,7 +10,7 @@ import DisciplineScore from '@/components/DisciplineScore';
 import OnboardingFlow from '@/components/OnboardingFlow';
 import NotificationSetup from '@/components/NotificationSetup';
 import {
-  Shield, Zap, Settings, ChevronRight, Moon, Bell, Lock, Pencil, Key, X,
+  Shield, Zap, Settings, ChevronRight, Moon, Bell, Lock, Pencil, Key, X, Camera,
 } from 'lucide-react';
 import type { UserProfile } from '@/lib/profileTypes';
 
@@ -31,13 +31,25 @@ const GAMEMODE_LABELS: Record<string, string> = {
 };
 
 export default function ProfilePage() {
-  const { profile, xp, streak, disciplineScore, completedMissions, saveProfile, apiKey, setApiKey, notifTime, setNotifTime } = useApp();
+  const { profile, xp, streak, disciplineScore, completedMissions, saveProfile, apiKey, setApiKey, notifTime, setNotifTime, profilePhoto, setProfilePhoto } = useApp();
   const { level, currentXP, requiredXP } = useLevel();
   const [dopamineDetox, setDopamineDetox] = useState(false);
   const [challengeMode, setChallengeMode] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
   const [localApiKey, setLocalApiKey] = useState('');
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (result) setProfilePhoto(result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const ringPercent = (currentXP / requiredXP) * 100;
   const SIZE = 100;
@@ -80,6 +92,15 @@ export default function ProfilePage() {
         transition={{ delay: 0.1 }}
         className="flex flex-col items-center mb-6"
       >
+        {/* Hidden file input */}
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handlePhotoChange}
+        />
+
         <div className="relative mb-3">
           <svg width={SIZE} height={SIZE} className="-rotate-90">
             <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={STROKE} />
@@ -94,19 +115,46 @@ export default function ProfilePage() {
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => photoInputRef.current?.click()}
+              className="w-16 h-16 rounded-full overflow-hidden relative group"
               style={{
-                background: 'linear-gradient(135deg,rgba(0,245,255,0.2),rgba(124,58,237,0.2))',
                 border: '2px solid rgba(0,245,255,0.4)',
                 boxShadow: '0 0 20px rgba(0,245,255,0.3)',
               }}
             >
-              <span className="text-neon-blue font-black text-2xl">
-                {profile?.firstName?.charAt(0).toUpperCase() ?? 'A'}
-              </span>
-            </div>
+              {profilePhoto ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profilePhoto} alt="profil" className="w-full h-full object-cover" />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg,rgba(0,245,255,0.2),rgba(124,58,237,0.2))' }}
+                >
+                  <span className="text-neon-blue font-black text-2xl">
+                    {profile?.firstName?.charAt(0).toUpperCase() ?? 'A'}
+                  </span>
+                </div>
+              )}
+              {/* Camera overlay on hover/tap */}
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-active:opacity-100 transition-opacity">
+                <Camera size={18} className="text-white" />
+              </div>
+            </motion.button>
           </div>
+          {/* Camera badge */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => photoInputRef.current?.click()}
+            className="absolute bottom-1 right-1 w-7 h-7 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg,#00f5ff,#7c3aed)',
+              boxShadow: '0 0 10px rgba(0,245,255,0.4)',
+            }}
+          >
+            <Camera size={13} className="text-black" />
+          </motion.button>
         </div>
 
         <h2 className="text-xl font-black text-white tracking-widest mb-1">
