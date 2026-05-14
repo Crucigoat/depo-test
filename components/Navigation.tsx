@@ -14,7 +14,9 @@ const tabs = [
 ];
 
 export default function Navigation() {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  // Normalize trailing slash: '/missions/' → '/missions', but keep '/' as-is
+  const pathname = rawPathname === '/' ? '/' : rawPathname.replace(/\/$/, '');
 
   return (
     <nav
