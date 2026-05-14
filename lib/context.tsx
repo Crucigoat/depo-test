@@ -6,6 +6,7 @@ import React, {
 import { HABITS, calculateLevel, type Mission } from './gameData';
 import { generateDailyMissions } from './missionGenerator';
 import type { UserProfile } from './profileTypes';
+import type { TodoItem } from './todoTypes';
 
 const STORAGE_KEYS = {
   PROFILE: 'ascend_profile',
@@ -15,6 +16,9 @@ const STORAGE_KEYS = {
   COMPLETED_MISSIONS: 'ascend_completed_missions',
   COMPLETED_HABITS: 'ascend_completed_habits',
   DAILY_MISSIONS: 'ascend_daily_missions',
+  TODOS: 'ascend_todos',
+  API_KEY: 'ascend_api_key',
+  NOTIF_TIME: 'ascend_notif_time',
 };
 
 function todayStr(): string {
@@ -33,6 +37,17 @@ interface AppState {
   saveProfile: (p: UserProfile) => void;
   completeMission: (id: string, missionXp: number) => void;
   toggleHabit: (id: string) => void;
+  // Todo list
+  todoItems: TodoItem[];
+  addTodo: (text: string, category: TodoItem['category'], targetDate: string) => void;
+  toggleTodo: (id: string) => void;
+  deleteTodo: (id: string) => void;
+  // API key
+  apiKey: string | null;
+  setApiKey: (key: string | null) => void;
+  // Notification time
+  notifTime: string | null;
+  setNotifTime: (time: string | null) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -45,6 +60,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [completedHabits, setCompletedHabits] = useState<string[]>([]);
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [todoItems, setTodoItems] = useState<TodoItem[]>([]);
+  const [apiKey, setApiKeyState] = useState<string | null>(null);
+  const [notifTime, setNotifTimeState] = useState<string | null>(null);
 
   // ── Bootstrap from localStorage ───────────────────────────────────────────
   useEffect(() => {
@@ -94,12 +112,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         );
       }
 
+      // Load todos
+      const rawTodos = localStorage.getItem(STORAGE_KEYS.TODOS);
+      const storedTodos: TodoItem[] = rawTodos ? JSON.parse(rawTodos) : [];
+
+      // Load API key
+      const storedApiKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
+
+      // Load notif time
+      const storedNotifTime = localStorage.getItem(STORAGE_KEYS.NOTIF_TIME);
+
       setProfile(storedProfile);
       setXp(storedXp);
       setStreak(currentStreak);
       setCompletedMissions(completedM);
       setCompletedHabits(completedH);
       setDailyMissions(missions);
+      setTodoItems(storedTodos);
+      setApiKeyState(storedApiKey);
+      setNotifTimeState(storedNotifTime);
     } finally {
       setIsLoaded(true);
     }
@@ -126,6 +157,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!isLoaded) return;
     localStorage.setItem(STORAGE_KEYS.COMPLETED_HABITS, JSON.stringify(completedHabits));
   }, [completedHabits, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem(STORAGE_KEYS.TODOS, JSON.stringify(todoItems));
+  }, [todoItems, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (apiKey !== null) {
+      localStorage.setItem(STORAGE_KEYS.API_KEY, apiKey);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.API_KEY);
+    }
+  }, [apiKey, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (notifTime !== null) {
+      localStorage.setItem(STORAGE_KEYS.NOTIF_TIME, notifTime);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.NOTIF_TIME);
+    }
+  }, [notifTime, isLoaded]);
 
   const disciplineScore = Math.round(
     ((completedMissions.length + completedHabits.length) /
@@ -171,11 +225,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  const addTodo = useCallback((text: string, category: TodoItem['category'], targetDate: string) => {
+    const newItem: TodoItem = {
+      id: `todo_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      text,
+      completed: false,
+      category,
+      targetDate,
+      createdAt: new Date().toISOString(),
+    };
+    setTodoItems((prev) => [...prev, newItem]);
+  }, []);
+
+  const toggleTodo = useCallback((id: string) => {
+    setTodoItems((prev) =>
+      prev.map((item) => item.id === id ? { ...item, completed: !item.completed } : item),
+    );
+  }, []);
+
+  const deleteTodo = useCallback((id: string) => {
+    setTodoItems((prev) => prev.filter((item) => item.id !== id));
+  }, []);
+
+  const setApiKey = useCallback((key: string | null) => {
+    setApiKeyState(key);
+  }, []);
+
+  const setNotifTime = useCallback((time: string | null) => {
+    setNotifTimeState(time);
+  }, []);
+
   return (
     <AppContext.Provider value={{
       profile, dailyMissions, completedMissions, completedHabits,
       xp, streak, disciplineScore, isLoaded,
       saveProfile, completeMission, toggleHabit,
+      todoItems, addTodo, toggleTodo, deleteTodo,
+      apiKey, setApiKey,
+      notifTime, setNotifTime,
     }}>
       {children}
     </AppContext.Provider>
