@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ascend-v2';
+const CACHE_NAME = 'ascend-v5';
 const BASE = '/depo-test';
 
 const PRECACHE = [
