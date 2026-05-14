@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 const tabs = [
   { href: '/',         label: 'Home',     icon: Home,        color: '#00f5ff' },
   { href: '/missions', label: 'Missions', icon: Target,      color: '#f59e0b' },
-  { href: '/todo',     label: 'Todo',     icon: CheckSquare, color: '#a78bfa' },
+  { href: '/todo',     label: 'Demain',   icon: CheckSquare, color: '#a78bfa' },
   { href: '/social',   label: 'Social',   icon: Users,       color: '#00ff88' },
   { href: '/profile',  label: 'Profil',   icon: User,        color: '#fb923c' },
 ];
