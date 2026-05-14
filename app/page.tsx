@@ -1,9 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useApp } from '@/lib/context';
-import { MISSIONS, HABITS, calculateLevel } from '@/lib/gameData';
-import QuoteCard from '@/components/QuoteCard';
+import { useApp, useLevel } from '@/lib/context';
+import { HABITS, MOTIVATIONAL_QUOTES } from '@/lib/gameData';
 import XPBar from '@/components/XPBar';
 import StreakCard from '@/components/StreakCard';
 import DisciplineScore from '@/components/DisciplineScore';
@@ -12,41 +11,40 @@ import HabitDot from '@/components/HabitDot';
 import StatsGrid from '@/components/StatsGrid';
 import { Zap } from 'lucide-react';
 
-const containerVariants = {
+const container = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 28 } },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } },
-};
+function getTodayQuote() {
+  const day = new Date().getDate();
+  return MOTIVATIONAL_QUOTES[day % MOTIVATIONAL_QUOTES.length];
+}
 
 export default function Dashboard() {
-  const { completedMissions, completedHabits, xp, streak, disciplineScore, completeMission, toggleHabit } = useApp();
-  const { level } = calculateLevel(xp);
-
-  const topMissions = MISSIONS.slice(0, 4);
+  const {
+    profile, dailyMissions, completedMissions, completedHabits,
+    xp, streak, disciplineScore, completeMission, toggleHabit,
+  } = useApp();
+  const { level } = useLevel();
+  const quote = getTodayQuote();
+  const preview = dailyMissions.slice(0, 4);
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
+    <motion.div variants={container} initial="hidden" animate="show"
       className="min-h-screen bg-black px-4 pt-6 pb-28"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between mb-5">
+      <motion.div variants={item} className="flex items-center justify-between mb-5">
         <div>
-          <h1
-            className="text-3xl font-black tracking-[0.15em] text-gradient-blue"
-          >
-            ASCEND
-          </h1>
-          <p className="text-white/30 text-xs font-bold tracking-widest mt-0.5">LEVEL UP YOUR LIFE</p>
+          <h1 className="text-3xl font-black tracking-[0.15em] text-gradient-blue">ASCEND</h1>
+          <p className="text-white/30 text-xs font-bold tracking-widest mt-0.5">
+            {profile ? `BIENVENUE, ${profile.firstName.toUpperCase()}` : 'ÉLÈVE-TOI CHAQUE JOUR'}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <div
@@ -66,72 +64,83 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Quote */}
-      <motion.div variants={itemVariants} className="mb-4">
-        <QuoteCard />
+      <motion.div variants={item}
+        className="glass rounded-2xl p-4 mb-4 border border-white/10"
+        style={{ background: 'linear-gradient(135deg,rgba(0,245,255,0.04),rgba(124,58,237,0.04))' }}
+      >
+        <p className="text-white/70 text-sm italic leading-relaxed">&ldquo;{quote.text}&rdquo;</p>
+        <p className="text-white/30 text-xs mt-2">— {quote.author}</p>
       </motion.div>
 
       {/* XP Bar */}
-      <motion.div variants={itemVariants} className="mb-4">
+      <motion.div variants={item} className="mb-4">
         <XPBar xp={xp} />
       </motion.div>
 
       {/* Streak + Discipline */}
-      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mb-5">
+      <motion.div variants={item} className="grid grid-cols-2 gap-3 mb-5">
         <StreakCard streak={streak} />
         <DisciplineScore score={disciplineScore} />
       </motion.div>
 
-      {/* Today's Missions */}
-      <motion.div variants={itemVariants} className="mb-5">
+      {/* Missions du jour */}
+      <motion.div variants={item} className="mb-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase">
-            TODAY&apos;S MISSIONS
+            Missions du jour
+            {dailyMissions.length > 0 && (
+              <span className="ml-2 text-neon-blue/60">
+                {completedMissions.length}/{dailyMissions.length}
+              </span>
+            )}
           </h2>
-          <a href="/missions" className="text-neon-blue text-xs font-bold tracking-wider">SEE ALL →</a>
+          <a href="/missions" className="text-neon-blue text-xs font-bold tracking-wider">TOUT VOIR →</a>
         </div>
-        <div className="space-y-3">
-          {topMissions.map((mission) => (
-            <MissionCard
-              key={mission.id}
-              mission={mission}
-              completed={completedMissions.includes(mission.id)}
-              onComplete={() => completeMission(mission.id, mission.xp)}
-            />
-          ))}
-        </div>
+        {preview.length === 0 ? (
+          <div className="glass rounded-2xl p-6 text-center text-white/30 text-sm border border-white/10">
+            Configure ton profil pour recevoir tes missions
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {preview.map((m) => (
+              <MissionCard
+                key={m.id}
+                mission={m}
+                completed={completedMissions.includes(m.id)}
+                onComplete={() => completeMission(m.id, m.xp)}
+              />
+            ))}
+          </div>
+        )}
       </motion.div>
 
-      {/* Habits Quick View */}
-      <motion.div variants={itemVariants} className="mb-5">
+      {/* Habitudes */}
+      <motion.div variants={item} className="mb-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase">HABITS</h2>
-          <a href="/habits" className="text-neon-violet text-xs font-bold tracking-wider">SEE ALL →</a>
+          <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase">Habitudes</h2>
+          <a href="/habits" className="text-neon-violet text-xs font-bold tracking-wider">VOIR →</a>
         </div>
         <div className="glass rounded-2xl p-4 border border-white/10">
           <div className="grid grid-cols-4 gap-3">
-            {HABITS.slice(0, 8).map((habit) => (
+            {HABITS.map((h) => (
               <HabitDot
-                key={habit.id}
-                id={habit.id}
-                label={habit.label}
-                icon={habit.icon}
-                color={habit.color}
-                active={completedHabits.includes(habit.id)}
-                onToggle={() => toggleHabit(habit.id)}
+                key={h.id}
+                id={h.id}
+                label={h.label}
+                icon={h.icon}
+                color={h.color}
+                active={completedHabits.includes(h.id)}
+                onToggle={() => toggleHabit(h.id)}
               />
             ))}
           </div>
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
-      <motion.div variants={itemVariants}>
-        <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase mb-3">STATS</h2>
-        <StatsGrid
-          xp={xp}
-          completedMissions={completedMissions.length}
-          completedHabits={completedHabits.length}
-        />
+      {/* Stats */}
+      <motion.div variants={item}>
+        <h2 className="text-xs font-bold tracking-[0.2em] text-white/40 uppercase mb-3">Statistiques</h2>
+        <StatsGrid xp={xp} completedMissions={completedMissions.length} completedHabits={completedHabits.length} />
       </motion.div>
     </motion.div>
   );

@@ -2,7 +2,10 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Dumbbell, BookOpen, Droplets, Footprints, Zap, Shield, Brain, PenLine, Check, type LucideProps,
+  Dumbbell, BookOpen, Droplets, Footprints, Zap, Shield, Brain, PenLine,
+  Flame, Apple, Moon, Target, Activity, Bike, Waves, Wind, Eye, Sun,
+  MessageCircle, Users, Heart, TrendingUp, ClipboardList, Inbox,
+  Timer, Clock, Home, PhoneOff, Check, type LucideProps,
 } from 'lucide-react';
 import { ForwardRefExoticComponent, RefAttributes } from 'react';
 
@@ -10,6 +13,9 @@ type LucideIcon = ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttrib
 
 const iconMap: Record<string, LucideIcon> = {
   Dumbbell, BookOpen, Droplets, Footprints, Zap, Shield, Brain, PenLine,
+  Flame, Apple, Moon, Target, Activity, Bike, Waves, Wind, Eye, Sun,
+  MessageCircle, Users, Heart, TrendingUp, ClipboardList, Inbox,
+  Timer, Clock, Home, PhoneOff,
 };
 
 const difficultyConfig = {

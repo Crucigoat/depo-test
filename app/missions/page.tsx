@@ -3,39 +3,42 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '@/lib/context';
-import { MISSIONS } from '@/lib/gameData';
 import MissionCard from '@/components/MissionCard';
 import { Calendar, Trophy } from 'lucide-react';
 
 type Filter = 'all' | 'active' | 'completed';
 
 export default function MissionsPage() {
-  const { completedMissions, completeMission } = useApp();
+  const { dailyMissions, completedMissions, completeMission } = useApp();
   const [filter, setFilter] = useState<Filter>('all');
 
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  const dateStr = now.toLocaleDateString('fr-FR', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  const earnedXP = MISSIONS
+  const earnedXP = dailyMissions
     .filter((m) => completedMissions.includes(m.id))
     .reduce((sum, m) => sum + m.xp, 0);
 
-  const completionPct = Math.round((completedMissions.length / MISSIONS.length) * 100);
+  const completionPct = dailyMissions.length > 0
+    ? Math.round((completedMissions.filter((id) => dailyMissions.find((m) => m.id === id)).length / dailyMissions.length) * 100)
+    : 0;
 
-  const filtered = MISSIONS.filter((m) => {
+  const doneTodayCount = completedMissions.filter((id) => dailyMissions.find((m) => m.id === id)).length;
+
+  const filtered = dailyMissions.filter((m) => {
     if (filter === 'active') return !completedMissions.includes(m.id);
     if (filter === 'completed') return completedMissions.includes(m.id);
     return true;
   });
 
-  const allDone = completedMissions.length === MISSIONS.length;
+  const allDone = dailyMissions.length > 0 && doneTodayCount === dailyMissions.length;
 
   return (
     <div className="min-h-screen bg-black px-4 pt-6 pb-28">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
         <h1 className="text-2xl font-black tracking-[0.12em] text-gradient-blue mb-1">
-          DAILY MISSIONS
+          MISSIONS DU JOUR
         </h1>
         <div className="flex items-center gap-1.5 text-white/40">
           <Calendar size={12} />
@@ -52,14 +55,14 @@ export default function MissionsPage() {
       >
         <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-white/40 text-xs font-bold tracking-widest">XP EARNED TODAY</p>
+            <p className="text-white/40 text-xs font-bold tracking-widest">XP GAGNÉS</p>
             <p className="text-neon-gold font-black text-2xl">+{earnedXP} XP</p>
           </div>
           <div className="flex items-center gap-2">
             <Trophy size={20} className="text-neon-gold" />
             <div className="text-right">
-              <p className="text-white font-black text-xl">{completedMissions.length}/{MISSIONS.length}</p>
-              <p className="text-white/30 text-xs">DONE</p>
+              <p className="text-white font-black text-xl">{doneTodayCount}/{dailyMissions.length}</p>
+              <p className="text-white/30 text-xs">FAITES</p>
             </div>
           </div>
         </div>
@@ -75,8 +78,8 @@ export default function MissionsPage() {
           />
         </div>
         <div className="flex justify-between mt-1">
-          <p className="text-white/20 text-xs">{completionPct}% complete</p>
-          <p className="text-white/20 text-xs">{MISSIONS.length - completedMissions.length} remaining</p>
+          <p className="text-white/20 text-xs">{completionPct}% complété</p>
+          <p className="text-white/20 text-xs">{dailyMissions.length - doneTodayCount} restantes</p>
         </div>
       </motion.div>
 
@@ -113,8 +116,8 @@ export default function MissionsPage() {
             className="flex flex-col items-center justify-center py-16 gap-3"
           >
             <span className="text-5xl">🏆</span>
-            <p className="text-white font-black text-xl">ALL MISSIONS COMPLETE</p>
-            <p className="text-white/30 text-sm">You&apos;re an absolute legend today.</p>
+            <p className="text-white font-black text-xl">TOUTES LES MISSIONS COMPLÉTÉES</p>
+            <p className="text-white/30 text-sm">Tu es une légende aujourd&apos;hui.</p>
           </motion.div>
         )}
 
@@ -126,7 +129,7 @@ export default function MissionsPage() {
             exit={{ opacity: 0 }}
             className="flex flex-col items-center justify-center py-16 gap-2"
           >
-            <p className="text-white/40 text-sm">No {filter} missions.</p>
+            <p className="text-white/40 text-sm">Aucune mission {filter === 'active' ? 'active' : 'complétée'}.</p>
           </motion.div>
         )}
 
